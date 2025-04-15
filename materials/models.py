@@ -10,7 +10,7 @@ class Course(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец курса', db_index=True)
 
     def __str__(self):
-        return self.course_name
+        return self.name
 
     class Meta:
         verbose_name = 'Курс'
@@ -23,8 +23,8 @@ class Lesson(models.Model):
     description = models.TextField(verbose_name='Описание урока', blank=False)
     preview = models.ImageField(upload_to='lesson_previews/', blank=False, verbose_name='Превью',)
     link_to_the_video = models.URLField(verbose_name='Ссылка на видео', blank=False)
-    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE, db_index=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец урока', blank=True, null=True)
+    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец урока', default=1)
 
     def __str__(self):
         return self.name
