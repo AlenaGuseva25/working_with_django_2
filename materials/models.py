@@ -28,6 +28,9 @@ class Lesson(models.Model):
     def __str__(self):
         return self.lesson_name
 
+    def get_owner(self):
+        return self.course.owner
+
     class Meta:
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
