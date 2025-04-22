@@ -68,3 +68,5 @@ class Payments(models.Model):
         verbose_name_plural = 'Платежи'
         ordering = ['payment_date']
 
+
+MODERATOR_GROUP_NAME = 'Модераторы'
