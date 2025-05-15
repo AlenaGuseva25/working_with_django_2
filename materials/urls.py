@@ -9,10 +9,10 @@ from rest_framework_simplejwt.views import (
 from materials.views import CourseViewSet, LessonCreateAPIView, LessonListAPIView, LessonRetrieveAPIView, \
     LessonUpdateAPIView, LessonDestroyAPIView
 
-app_name = MaterialsConfig.name
+app_name = 'materials'
 
 router = DefaultRouter()
-router.register(r'courses', CourseViewSet)
+router.register(r'courses', CourseViewSet, basename='course')
 
 urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
