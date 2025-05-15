@@ -58,6 +58,13 @@ class LessonCRUDTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Lesson.objects.count(), 2)
 
+    def test_create_lesson_by_moderator_forbidden(self):
+        """Модератор не может создать урок"""
+        self.client.force_authenticate(user=self.moderator)
+        url = reverse('materials:lesson-create')
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_update_lesson_owner(self):
         "Обновление урока владельцем"
         self.client.force_authenticate(user=self.owner)
