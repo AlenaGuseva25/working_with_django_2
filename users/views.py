@@ -1,16 +1,25 @@
+from itertools import product
+from lib2to3.fixes.fix_input import context
 from warnings import filters
 
-from rest_framework import generics, permissions
+import stripe
+from requests import session
+from django.conf import settings
+from rest_framework import generics, permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
 
-
+from users import serializers
 from users.models import User, Payments
 from users.serializers import UserSerializer, PaymentsSerializer
+from users.services import create_stripe_price, create_stripe_product, \
+    create_stripe_session
 
 
 class UserCreateAPIView(generics.CreateAPIView):
@@ -39,6 +48,33 @@ class UserUpdateAPIView(generics.UpdateAPIView):
 class UserDestroyAPIView(generics.DestroyAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+
+class PaymentsCreateAPIView(generics.CreateAPIView):
+    serializer_class = PaymentsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        payment = serializer.save(user=self.request.user)
+
+        product_name = None
+        if payment.course:
+            product_name = payment.course.name
+        elif payment.lesson:
+            product_name = payment.lesson.name
+        else:
+            return Response({"error": "Не указан курс или урок."}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = create_stripe_product(product_name)
+        price = create_stripe_price(payment.amount, product.id)
+        session = create_stripe_session(price.id)
+
+        payment.payment_session_id = session.id
+        payment.payment_link = session.url
+        payment.save()
+
+        return Response({"id": payment.id, "payment_link": payment.payment_link}, status=status.HTTP_201_CREATED)
 
 
 class PaymentsRetrieveAPIView(generics.RetrieveAPIView):
