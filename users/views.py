@@ -68,8 +68,6 @@ class PaymentsCreateAPIView(generics.CreateAPIView):
         payment.payment_link = session.url
         payment.save()
 
-        return Response({"id": payment.id, "payment_link": payment.payment_link}, status=status.HTTP_201_CREATED)
-
 
 class PaymentsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = PaymentsSerializer
