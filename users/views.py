@@ -58,13 +58,7 @@ class PaymentsCreateAPIView(generics.CreateAPIView):
         user = self.request.user
         payment = serializer.save(user=self.request.user)
 
-        product_name = None
-        if payment.course:
-            product_name = payment.course.name
-        elif payment.lesson:
-            product_name = payment.lesson.name
-        else:
-            return Response({"error": "Не указан курс или урок."}, status=status.HTTP_400_BAD_REQUEST)
+        product_name = payment.course.name if payment.course else payment.lesson.name
 
         product = create_stripe_product(product_name)
         price = create_stripe_price(payment.amount, product.id)
