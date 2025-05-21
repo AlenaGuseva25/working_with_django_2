@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -11,6 +13,10 @@ from materials.paginators import LessonsPaginator, CoursesPaginator
 from materials.serializers import CourseSerializer, LessonSerializer
 from users.models import MODERATOR_GROUP_NAME
 from users.permissions import IsModerator, IsOwner, IsOwnerOrModerator, IsNotModerator
+
+@method_decorator(name='list',decorator=swagger_auto_schema(
+    operation_description="description from swagger_auto_schema via method_decorator"
+))
 
 
 class CourseViewSet(viewsets.ModelViewSet):

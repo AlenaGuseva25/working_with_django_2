@@ -59,6 +59,8 @@ class Payments(models.Model):
     lesson = models.ForeignKey('materials.Lesson', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Ссылка на оплаченный урок')
     amount = models.DecimalField(max_length=20, decimal_places=2, max_digits=10, verbose_name='Сумма оплаты')
     method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, verbose_name='Способ оплаты')
+    payment_session_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_link = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f'Платеж на сумму {self.payment_date} от {self.user.email}'
