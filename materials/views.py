@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
+
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
@@ -11,12 +14,9 @@ from rest_framework import status
 from materials.models import Course, Lesson, Subscription
 from materials.paginators import LessonsPaginator, CoursesPaginator
 from materials.serializers import CourseSerializer, LessonSerializer
+from materials.tasks import send_course_update_notification
 from users.models import MODERATOR_GROUP_NAME
 from users.permissions import IsModerator, IsOwner, IsOwnerOrModerator, IsNotModerator
-
-@method_decorator(name='list',decorator=swagger_auto_schema(
-    operation_description="description from swagger_auto_schema via method_decorator"
-))
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -26,6 +26,14 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+
+        time_threshold = timezone.now() - timedelta(hours=4)
+        if instance.updated_at < time_threshold:
+            send_course_update_notification.delay(instance.id)
+
 
     def get_permissions(self):
         permission_map = {
