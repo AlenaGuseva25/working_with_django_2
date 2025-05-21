@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from django.conf.global_settings import CSRF_TRUSTED_ORIGINS
 from dotenv import load_dotenv
 
@@ -184,8 +185,9 @@ CACHES = {
 }
 
 CELERY_BEAT_SCHEDULE = {
-    'task-name': {
-        'task': 'myapp.tasks.my_task',
-        'schedule': timedelta(minutes=10),
+    'check-inactive-users-monthly': {
+        'task': 'users.tasks.check_inactive_users',
+        'schedule': crontab(day_of_month='1', hour=3, minute=0),
+        'options': {'queue': 'periodic'}
     },
 }
