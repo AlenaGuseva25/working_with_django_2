@@ -9,11 +9,5 @@ app = Celery('config')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-#app.conf.beat_schedule = {
- #   'check-inactive-users-every-day': {
-  #      'task' : 'config.tasks.check_inactive_users',
-   #     'schedule': crontab(hour=3, minute=0),
-    #},
-#}
 
 app.autodiscover_tasks()
