@@ -240,3 +240,19 @@ jobs:
           sudo journalctl -u myapp.service -n 20 --no-pager
           "    
 
+      - name: Debug manually
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          cd ${{ secrets.DEPLOY_DIR }} &&
+          source .venv/bin/activate &&
+          
+          # Проверяем базовые вещи
+          echo '=== Python path ==='
+          python -c 'import sys; print(\"\\n\".join(sys.path))'
+          
+          echo '=== Django check ==='
+          python manage.py check --database default || echo 'Django check failed'
+          
+          echo '=== Try gunicorn manually ==='
+          python -m gunicorn --workers 1 --bind 0.0.0.0:8001 config.wsgi:application || echo 'Gunicorn failed'
+          "
