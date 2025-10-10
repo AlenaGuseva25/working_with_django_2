@@ -160,14 +160,27 @@ jobs:
           python manage.py migrate --skip-checks
           "
 
-      - name: Collect static files on server
+      - name: Configure static root
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
           source .venv/bin/activate &&
 
-          # Временно устанавливаем STATIC_ROOT
-          STATIC_ROOT='/home/test/static' python manage.py collectstatic --noinput
+          # Создаем папку для статики
+          mkdir -p /home/test/static
+
+          # Добавляем STATIC_ROOT в config/settings.py
+          echo '' >> config/settings.py
+          echo '# Static files for production' >> config/settings.py
+          echo 'STATIC_ROOT = \"/home/test/static\"' >> config/settings.py
+          "
+
+      - name: Collect static files on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          cd ${{ secrets.DEPLOY_DIR }} &&
+          source .venv/bin/activate &&
+          python manage.py collectstatic --noinput
           "
 
       - name: Restart application
