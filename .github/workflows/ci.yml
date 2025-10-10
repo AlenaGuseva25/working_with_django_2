@@ -34,7 +34,10 @@ jobs:
         run: poetry install --no-interaction --no-ansi --no-root
 
       - name: Create environment file
-        run: echo "SECRET_KEY=test-key-12345" > .env
+        run: |
+          echo "SECRET_KEY=test-key-12345" > .env
+          echo "DEBUG=True" >> .env
+          echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env
 
       - name: Run migrate
         run: poetry run python manage.py migrate
