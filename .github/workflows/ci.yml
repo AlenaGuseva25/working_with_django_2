@@ -234,3 +234,9 @@ jobs:
           sudo systemctl status myapp.service --no-pager
           "
 
+      - name: Check gunicorn logs
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          sudo journalctl -u myapp.service -n 20 --no-pager
+          "    
+
