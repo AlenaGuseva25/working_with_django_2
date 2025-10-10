@@ -117,6 +117,16 @@ jobs:
       - name: Install dependencies on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          # Ждем освобождения apt lock
+          while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+            echo 'Waiting for apt lock...'
+            sleep 1
+          done
+          while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+            echo 'Waiting for dpkg lock...'
+            sleep 1
+          done
+
           cd ${{ secrets.DEPLOY_DIR }} &&
           sudo apt-get update &&
           sudo apt-get install -y python3-pip python3-venv &&
