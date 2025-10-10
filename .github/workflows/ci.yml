@@ -202,14 +202,35 @@ jobs:
           echo "[Install]" >> myapp.service
           echo "WantedBy=multi-user.target" >> myapp.service
 
-      - name: Copy and start systemd service
+      - name: Fix systemd service
         run: |
-          scp -o StrictHostKeyChecking=no myapp.service ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          sudo mv /tmp/myapp.service /etc/systemd/system/
+          # Удаляем старый сервис
+          sudo systemctl stop myapp.service || true
+          sudo systemctl disable myapp.service || true
+          sudo rm -f /etc/systemd/system/myapp.service
+
+          # Создаем новый сервис командами
+          echo '[Unit]' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'Description=My Django Application' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'After=network.target' | sudo tee -a /etc/systemd/system/myapp.service
+          echo '' | sudo tee -a /etc/systemd/system/myapp.service
+          echo '[Service]' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'Type=simple' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'User=test' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'Group=test' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'WorkingDirectory=/home/test/myapp' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'ExecStart=/home/test/myapp/.venv/bin/python -m gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'Restart=always' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'RestartSec=3' | sudo tee -a /etc/systemd/system/myapp.service
+          echo '' | sudo tee -a /etc/systemd/system/myapp.service
+          echo '[Install]' | sudo tee -a /etc/systemd/system/myapp.service
+          echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service
+
           sudo systemctl daemon-reload
           sudo systemctl enable myapp.service
           sudo systemctl start myapp.service
+          sleep 3
           sudo systemctl status myapp.service --no-pager
           "
 
