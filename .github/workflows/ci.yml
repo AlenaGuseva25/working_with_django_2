@@ -183,8 +183,30 @@ jobs:
           python manage.py collectstatic --noinput
           "
 
-      - name: Restart application
+      - name: Create and start systemd service
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          sudo systemctl restart myapp.service
+          cat > /tmp/myapp.service << 'EOF'
+[Unit]
+Description=My Django Application
+After=network.target
+
+[Service]
+Type=simple
+User=test
+Group=test
+WorkingDirectory=/home/test/myapp
+Environment=PATH=/home/test/myapp/.venv/bin
+ExecStart=/home/test/myapp/.venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+          sudo mv /tmp/myapp.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable myapp.service
+          sudo systemctl start myapp.service
+          sudo systemctl status myapp.service --no-pager
           "
