@@ -117,7 +117,6 @@ jobs:
       - name: Install dependencies on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          # Ждем освобождения apt lock
           while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
             echo 'Waiting for apt lock...'
             sleep 1
@@ -130,29 +129,27 @@ jobs:
           cd ${{ secrets.DEPLOY_DIR }} &&
           sudo apt-get update &&
           sudo apt-get install -y python3-pip python3-venv &&
-
-          python3 -m pip install --upgrade pip &&
-          python3 -m pip install poetry &&
-
-          poetry config virtualenvs.in-project true &&
-
-          poetry install --no-dev --no-root
+          python3 -m venv /tmp/poetry_venv &&
+          /tmp/poetry_venv/bin/pip install --upgrade pip &&
+          /tmp/poetry_venv/bin/pip install poetry &&
+          /tmp/poetry_venv/bin/poetry config virtualenvs.in-project true &&
+          /tmp/poetry_venv/bin/poetry install --no-dev --no-root
           "
 
       - name: Apply migrations on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
-          source venv/bin/activate &&
-          poetry run python manage.py migrate
+          source .venv/bin/activate &&
+          python manage.py migrate
           "
 
       - name: Collect static files on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
-          source venv/bin/activate &&
-          poetry run python manage.py collectstatic --noinput
+          source .venv/bin/activate &&
+          python manage.py collectstatic --noinput
           "
 
       - name: Restart application
