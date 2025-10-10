@@ -33,6 +33,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi --no-root
 
+      - name: Create environment file
+        run: echo "SECRET_KEY=test-key-12345" > .env
+
       - name: Run migrate
         run: poetry run python manage.py migrate
 
