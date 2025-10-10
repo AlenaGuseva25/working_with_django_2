@@ -110,11 +110,15 @@ jobs:
 
       - name: Create and deploy archive
         run: |
-          # Создаем архив
-          tar --exclude='__pycache__' --exclude='.venv' --exclude='.git' -czf deploy.tar.gz .
+          # Клонируем свежую копию репозитория
+          git clone https://github.com/AlenaGuseva25/working_with_django_2.git /tmp/deploy_repo
+
+          # Создаем архив из чистой копии
+          cd /tmp/deploy_repo &&
+          tar --exclude='__pycache__' --exclude='.venv' --exclude='.git' -czf /tmp/deploy.tar.gz .
 
           # Копируем на сервер
-          scp -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+          scp -o StrictHostKeyChecking=no /tmp/deploy.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
 
           # Распаковываем
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
