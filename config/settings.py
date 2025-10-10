@@ -22,8 +22,7 @@ STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv('DEBUG') == 'True' else False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'DESKTOP-E1FLSJE']
-
+ALLOWED_HOSTS = ['158.160.6.208', 'localhost', '127.0.0.1']
 
 # Application definition
 
