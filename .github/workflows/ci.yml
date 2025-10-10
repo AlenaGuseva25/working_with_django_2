@@ -165,7 +165,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
           source .venv/bin/activate &&
-          python manage.py collectstatic --noinput
+
+          # Временно устанавливаем STATIC_ROOT
+          STATIC_ROOT='/home/test/static' python manage.py collectstatic --noinput
           "
 
       - name: Restart application
