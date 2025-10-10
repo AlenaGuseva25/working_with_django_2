@@ -37,7 +37,6 @@ jobs:
         run: poetry run python manage.py migrate
 
       - name: Run tests
-        env:
         run: poetry run python manage.py test
 
   build:
