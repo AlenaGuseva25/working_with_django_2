@@ -104,14 +104,14 @@ jobs:
 
     steps:
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.8.1
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh_private_key: ${{ secrets.SSH_KEY }}
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Copy project files to server
         run: |
           rsync -avz --exclude='__pycache__' --exclude='.venv' --exclude='.git' \
-          . ${SSH_USER_WORKING_WITH_DJANGO_2}@${SERVER_ID_WORKING_WITH_DJANGO_2}:${DEPLOY_DIR}
+          . ${ secrets.SSH_USER }@${ secrets.SERVER_IP }:${ secrets.DEPLOY_DIR }
         env:
           SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
           SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
@@ -119,45 +119,29 @@ jobs:
 
       - name: Install dependencies on server
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER_WORKING_WITH_DJANGO_2}@${SERVER_ID_WORKING_WITH_DJANGO_2} << 'EOF'
-          cd ${DEPLOY_DIR}
-          python3 -m pip install --upgrade pip
-          python3 -m pip install poetry
-          poetry install --no-dev
-          EOF
-        env:
-          SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
-          SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
-          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          cd ${{ secrets.DEPLOY_DIR }} &&
+          python3 -m pip install --upgrade pip &&
+          python3 -m pip install poetry &&
+          poetry install --no-dev --no-root
+          "
 
       - name: Apply migrations on server
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER_WORKING_WITH_DJANGO_2}@${SERVER_ID_WORKING_WITH_DJANGO_2} << 'EOF'
-          cd ${DEPLOY_DIR}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          cd ${{ secrets.DEPLOY_DIR }} &&
           poetry run python manage.py migrate
-          EOF
-        env:
-          SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
-          SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
-          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          "
 
       - name: Collect static files on server
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER_WORKING_WITH_DJANGO_2}@${SERVER_ID_WORKING_WITH_DJANGO_2} << 'EOF'
-          cd ${DEPLOY_DIR}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+          cd ${{ secrets.DEPLOY_DIR }} &&
           poetry run python manage.py collectstatic --noinput
-          EOF
-        env:
-          SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
-          SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
-          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          "
 
       - name: Restart application
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER_WORKING_WITH_DJANGO_2}@${SERVER_ID_WORKING_WITH_DJANGO_2} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           sudo systemctl restart myapp.service
-          EOF
-        env:
-          SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
-          SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
-
+          "
