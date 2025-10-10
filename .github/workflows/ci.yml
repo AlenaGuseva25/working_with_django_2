@@ -113,7 +113,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd /home/test &&
           rm -rf myapp &&
-          git clone https://github.com/AlenaGuseva25/working-with-django-2.git myapp
+          git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/AlenaGuseva25/working-with-django-2.git myapp
           "
 
       - name: Install dependencies on server
