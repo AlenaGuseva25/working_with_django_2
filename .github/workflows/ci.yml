@@ -183,76 +183,24 @@ jobs:
           python manage.py collectstatic --noinput
           "
 
-      - name: Create systemd service file locally
-        run: |
-          echo "[Unit]" > myapp.service
-          echo "Description=My Django Application" >> myapp.service
-          echo "After=network.target" >> myapp.service
-          echo "" >> myapp.service
-          echo "[Service]" >> myapp.service
-          echo "Type=simple" >> myapp.service
-          echo "User=test" >> myapp.service
-          echo "Group=test" >> myapp.service
-          echo "WorkingDirectory=/home/test/myapp" >> myapp.service
-          echo "Environment=PATH=/home/test/myapp/.venv/bin" >> myapp.service
-          echo "ExecStart=/home/test/myapp/.venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application" >> myapp.service
-          echo "Restart=always" >> myapp.service
-          echo "RestartSec=3" >> myapp.service
-          echo "" >> myapp.service
-          echo "[Install]" >> myapp.service
-          echo "WantedBy=multi-user.target" >> myapp.service
-
-      - name: Fix systemd service
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          # Удаляем старый сервис
-          sudo systemctl stop myapp.service || true
-          sudo systemctl disable myapp.service || true
-          sudo rm -f /etc/systemd/system/myapp.service
-
-          # Создаем новый сервис командами
-          echo '[Unit]' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'Description=My Django Application' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'After=network.target' | sudo tee -a /etc/systemd/system/myapp.service
-          echo '' | sudo tee -a /etc/systemd/system/myapp.service
-          echo '[Service]' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'Type=simple' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'User=test' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'Group=test' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'WorkingDirectory=/home/test/myapp' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'ExecStart=/home/test/myapp/.venv/bin/python -m gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'Restart=always' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'RestartSec=3' | sudo tee -a /etc/systemd/system/myapp.service
-          echo '' | sudo tee -a /etc/systemd/system/myapp.service
-          echo '[Install]' | sudo tee -a /etc/systemd/system/myapp.service
-          echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service
-
-          sudo systemctl daemon-reload
-          sudo systemctl enable myapp.service
-          sudo systemctl start myapp.service
-          sleep 3
-          sudo systemctl status myapp.service --no-pager
-          "
-
-      - name: Check gunicorn logs
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          sudo journalctl -u myapp.service -n 20 --no-pager
-          "    
-
-      - name: Debug manually
+      - name: Start application manually
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
           source .venv/bin/activate &&
-          
-          # Проверяем базовые вещи
-          echo '=== Python path ==='
-          python -c 'import sys; print(\"\\n\".join(sys.path))'
-          
-          echo '=== Django check ==='
-          python manage.py check --database default || echo 'Django check failed'
-          
-          echo '=== Try gunicorn manually ==='
-          python -m gunicorn --workers 1 --bind 0.0.0.0:8001 config.wsgi:application || echo 'Gunicorn failed'
+
+          sudo systemctl stop myapp.service || true
+
+          echo '=== Starting Django application ==='
+          nohup python manage.py runserver 0.0.0.0:8000 > /home/test/django.log 2>&1 &
+
+          sleep 5
+
+          echo '=== Checking if app is running ==='
+          curl -f http://localhost:8000/ && echo 'SUCCESS: App is running!' || echo 'FAILED: App not responding'
+
+          echo '=== Application logs ==='
+          tail -20 /home/test/django.log
           "
+
+      
