@@ -183,7 +183,7 @@ jobs:
           python manage.py collectstatic --noinput
           "
 
-      - name: Create and start systemd service
+      - name: Createe and start systemd service
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cat > /tmp/myapp.service << 'EOF'
@@ -210,3 +210,4 @@ EOF
           sudo systemctl start myapp.service
           sudo systemctl status myapp.service --no-pager
           "
+
