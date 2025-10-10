@@ -104,7 +104,7 @@ jobs:
 
     steps:
       - name: Set up SSH
-        uses: webfactory/ssh-agent@0.8.1
+        uses: webfactory/ssh-agent@v0.8.1
         with:
           ssh_private_key: ${{ secrets.SSH_KEY }}
 
