@@ -149,7 +149,7 @@ jobs:
           /tmp/poetry_venv/bin/pip install --upgrade pip &&
           /tmp/poetry_venv/bin/pip install poetry &&
           /tmp/poetry_venv/bin/poetry config virtualenvs.in-project true &&
-          /tmp/poetry_venv/bin/poetry install --without dev --no-root
+          /tmp/poetry_venv/bin/poetry install --no-root
           "
 
       - name: Apply migrations on server
