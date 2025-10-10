@@ -31,7 +31,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi --no-root
 
       - name: Run migrate
         run: poetry run python manage.py migrate
