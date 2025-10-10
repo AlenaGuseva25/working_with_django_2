@@ -130,8 +130,12 @@ jobs:
           cd ${{ secrets.DEPLOY_DIR }} &&
           sudo apt-get update &&
           sudo apt-get install -y python3-pip python3-venv &&
+
           python3 -m pip install --upgrade pip &&
           python3 -m pip install poetry &&
+
+          poetry config virtualenvs.in-project true &&
+
           poetry install --no-dev --no-root
           "
 
@@ -139,6 +143,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
+          source venv/bin/activate &&
           poetry run python manage.py migrate
           "
 
@@ -146,6 +151,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
+          source venv/bin/activate &&
           poetry run python manage.py collectstatic --noinput
           "
 
