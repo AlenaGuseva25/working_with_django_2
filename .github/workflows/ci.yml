@@ -108,12 +108,22 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Clone project on server
+      - name: Create and deploy archive
         run: |
+          # Создаем архив
+          tar --exclude='__pycache__' --exclude='.venv' --exclude='.git' -czf deploy.tar.gz .
+
+          # Копируем на сервер
+          scp -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+
+          # Распаковываем
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          cd /home/test &&
-          rm -rf myapp &&
-          git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/AlenaGuseva25/working-with-django-2.git myapp
+          mkdir -p ${{ secrets.DEPLOY_DIR }} &&
+          cd ${{ secrets.DEPLOY_DIR }} &&
+          tar -xzf /tmp/deploy.tar.gz &&
+          rm /tmp/deploy.tar.gz &&
+          echo 'Files deployed:' &&
+          ls -la
           "
 
       - name: Install dependencies on server
