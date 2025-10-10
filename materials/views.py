@@ -34,7 +34,6 @@ class CourseViewSet(viewsets.ModelViewSet):
         if instance.updated_at < time_threshold:
             send_course_update_notification.delay(instance.id)
 
-
     def get_permissions(self):
         permission_map = {
             'create': [IsAuthenticated, IsNotModerator],
@@ -49,7 +48,6 @@ class CourseViewSet(viewsets.ModelViewSet):
         }
         permissions = permission_map.get(self.action, [IsAuthenticated])
         return [permission() for permission in permissions]
-
 
     @action(detail=True, methods=['post'])
     def subscribe(self, request, pk=None):
@@ -67,7 +65,8 @@ class CourseViewSet(viewsets.ModelViewSet):
         course = self.get_object()
         subscription = Subscription.objects.filter(user=request.user, course=course).first()
         if not subscription:
-            return Response({"detail": "Невозможно удалить подписку, так как она не существует"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Невозможно удалить подписку, так как она не существует"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         subscription.delete()
         return Response({"detail": "Подписка удалена"}, status=status.HTTP_204_NO_CONTENT)
@@ -80,7 +79,6 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -112,4 +110,3 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner, IsNotModerator]
-
