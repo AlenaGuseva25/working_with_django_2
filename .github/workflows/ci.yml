@@ -110,12 +110,9 @@ jobs:
 
       - name: Copy project files to server
         run: |
-          rsync -avz --exclude='__pycache__' --exclude='.venv' --exclude='.git' \
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
+          --exclude='__pycache__' --exclude='.venv' --exclude='.git' \
           . ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
-        env:
-          SSH_USER_WORKING_WITH_DJANGO_2: ${{ secrets.SSH_USER }}
-          SERVER_ID_WORKING_WITH_DJANGO_2: ${{ secrets.SERVER_IP }}
-          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
 
       - name: Install dependencies on server
         run: |
