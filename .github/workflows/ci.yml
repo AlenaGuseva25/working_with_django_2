@@ -108,14 +108,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Copy project files to server
+      - name: Clone project on server
         run: |
-          echo "Creating archive and copying..."
-          tar --exclude='__pycache__' --exclude='.venv' --exclude='.git' -czf - . | \
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          mkdir -p ${{ secrets.DEPLOY_DIR }} && 
-          cd ${{ secrets.DEPLOY_DIR }} && 
-          tar -xzf -
+          cd /home/test &&
+          rm -rf myapp &&
+          git clone https://github.com/AlenaGuseva25/working-with-django-2.git myapp
           "
 
       - name: Install dependencies on server
